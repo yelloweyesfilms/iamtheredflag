@@ -1,0 +1,15 @@
+{
+  "name": "I AM THE RED FLAG",
+  "short_name": "Red Flag",
+  "description": "Pour une fois, tu es le problème. Découvre ton archétype Red Flag.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#09090f",
+  "theme_color": "#09090f",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/api/icon?size=192", "sizes": "192x192", "type": "image/png" },
+    { "src": "/api/icon?size=512", "sizes": "512x512", "type": "image/png" }
+  ]
+}
