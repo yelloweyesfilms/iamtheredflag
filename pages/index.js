@@ -28,12 +28,24 @@ export default function RedFlagHub() {
   const [hoveredStory, setHoveredStory] = useState(null);
   const [gamesPlayed, setGamesPlayed] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [dailyStory, setDailyStory] = useState(null);
+  const [dailyLoading, setDailyLoading] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     const count = parseInt(localStorage.getItem("rf_games_played") || "0");
     setGamesPlayed(count);
   }, []);
+
+  useEffect(() => {
+    if (step !== "stories") return;
+    setDailyLoading(true);
+    fetch("/api/generate-story")
+      .then((r) => r.json())
+      .then(({ story }) => { if (story) setDailyStory(story); })
+      .catch(() => {})
+      .finally(() => setDailyLoading(false));
+  }, [step]);
 
   function handleSelectArchetype(a) {
     setSelectedArchetype(a);
@@ -223,6 +235,37 @@ export default function RedFlagHub() {
               <h1 style={{ fontFamily: "'Anton', sans-serif", fontSize: 30, letterSpacing: "1px", margin: 0, textTransform: "uppercase" }}>Choisis ton drama.</h1>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {/* DRAMA DU JOUR */}
+              {dailyLoading && (
+                <div style={{ width: "100%", background: "rgba(232,92,58,0.04)", border: "1.5px dashed rgba(232,92,58,0.2)", borderRadius: 16, padding: "20px 16px", textAlign: "center" }}>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", letterSpacing: 2, textTransform: "uppercase" }}>⏳ Génération du drama du jour...</div>
+                </div>
+              )}
+              {!dailyLoading && dailyStory && (
+                <button onClick={() => {
+                  const url = selectedArchetype
+                    ? `/play?story=${dailyStory.id}&archetype=${selectedArchetype.id}&daily=1`
+                    : `/play?story=${dailyStory.id}&daily=1`;
+                  router.push(url);
+                }} style={{ width: "100%", background: `linear-gradient(135deg, rgba(232,92,58,0.12), rgba(168,85,247,0.08))`, border: "1.5px solid rgba(232,92,58,0.35)", borderRadius: 16, padding: "18px 16px", cursor: "pointer", textAlign: "left", fontFamily: "inherit", position: "relative", overflow: "hidden" }}>
+                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, #E85C3A, #a855f7)" }} />
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+                    <div style={{ fontSize: 34, lineHeight: 1, flexShrink: 0, marginTop: 2 }}>{dailyStory.emoji}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: RED, background: `${RED}20`, padding: "2px 8px", borderRadius: 5 }}>🔥 DRAMA DU JOUR</span>
+                        <span style={{ fontSize: 8, fontWeight: 800, letterSpacing: 1, color: dailyStory.difficultyColor || RED, background: `${dailyStory.difficultyColor || RED}20`, padding: "2px 7px", borderRadius: 5 }}>{dailyStory.difficulty}</span>
+                      </div>
+                      <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", marginBottom: 4 }}>{dailyStory.title}</div>
+                      <div style={{ fontSize: 12, fontStyle: "italic", color: "rgba(255,255,255,0.45)", marginBottom: 4 }}>{dailyStory.tagline}</div>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", lineHeight: 1.4 }}>{dailyStory.description}</div>
+                      <div style={{ marginTop: 8, fontSize: 10, color: "rgba(232,92,58,0.5)", fontWeight: 700 }}>✨ Généré aujourd'hui · Change demain</div>
+                    </div>
+                    <div style={{ color: RED, fontSize: 18, flexShrink: 0 }}>→</div>
+                  </div>
+                </button>
+              )}
+
               {STORIES.map((story) => {
                 const locked = !story.available;
                 return (
@@ -246,7 +289,7 @@ export default function RedFlagHub() {
                 );
               })}
             </div>
-            <p style={{ textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.15)", marginTop: 20 }}>Nouvelles histoires chaque semaine</p>
+            <p style={{ textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.15)", marginTop: 20 }}>🔥 Un nouveau drama généré chaque jour</p>
           </div>
         )}
       </div>
