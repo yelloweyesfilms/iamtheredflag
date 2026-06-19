@@ -86,6 +86,8 @@ export default function ResultsPage({ ssrTitle, ssrQuote, ssrArchetypeName, ssrA
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [newBadges, setNewBadges] = useState([]);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [cardImageLoaded, setCardImageLoaded] = useState(false);
 
   const { story: storyId, archetype: archetypeId, rf, chaos, manipulation, heartbreak, hearts, challenger_rf, challenger } = router.query;
   const challengerScore = challenger_rf ? parseInt(challenger_rf) : null;
@@ -273,17 +275,25 @@ export default function ResultsPage({ ssrTitle, ssrQuote, ssrArchetypeName, ssrA
           )}
 
           <div style={{ ...fade(4), marginTop: 36 }}>
-            {isMobile ? (
-              <>
-                <button onClick={handleInstagramShare} style={{ width: "100%", padding: "20px 24px", background: `linear-gradient(135deg, ${color} 0%, ${color}cc 50%, #a855f7 100%)`, border: "none", borderRadius: 18, color: "#fff", fontFamily: "'Anton', sans-serif", fontSize: 22, letterSpacing: "2.5px", cursor: "pointer", boxShadow: `0 16px 48px ${color}50`, textTransform: "uppercase", marginBottom: 8 }}>📲 PARTAGER MA CARTE</button>
-                <button onClick={handleShare} style={{ width: "100%", padding: "13px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 12, color: "rgba(255,255,255,0.45)", fontFamily: "inherit", fontSize: 13, fontWeight: 700, cursor: "pointer", marginBottom: 4 }}>{copied ? "✓ COPIÉ !" : "🔗 Copier le lien"}</button>
-              </>
-            ) : (
-              <>
-                <button onClick={handleShare} style={{ width: "100%", padding: "20px 24px", background: `linear-gradient(135deg, ${color}, ${color}cc)`, border: "none", borderRadius: 18, color: "#fff", fontFamily: "'Anton', sans-serif", fontSize: 22, letterSpacing: "2.5px", cursor: "pointer", boxShadow: `0 16px 48px ${color}45`, textTransform: "uppercase", marginBottom: 8 }}>{copied ? "✓ LIEN COPIÉ !" : "🔗 PARTAGER MON RÉSULTAT"}</button>
-                <button onClick={handleSaveCard} style={{ width: "100%", padding: "13px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, color: "rgba(255,255,255,0.35)", fontFamily: "inherit", fontSize: 13, fontWeight: 700, cursor: "pointer", marginBottom: 4 }}>💾 Télécharger ma carte (PNG)</button>
-              </>
-            )}
+            <div style={{ textAlign: "center", marginBottom: 24 }}>
+              <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 3, color: "rgba(255,255,255,0.2)", textTransform: "uppercase", marginBottom: 14 }}>TA CARTE DE COMBAT</div>
+              <div onClick={() => ogCardUrl && setShowShareModal(true)} style={{ cursor: "pointer", display: "inline-block", position: "relative", marginBottom: 18 }}>
+                {!cardImageLoaded && ogCardUrl && (
+                  <div style={{ width: 160, height: 284, background: `${color}08`, borderRadius: 16, border: `1px dashed ${color}30`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{ fontSize: 32, opacity: 0.4 }}>🚩</div>
+                  </div>
+                )}
+                {ogCardUrl && (
+                  <img src={ogCardUrl} onLoad={() => setCardImageLoaded(true)} style={{ width: 160, borderRadius: 16, display: cardImageLoaded ? "block" : "none", boxShadow: `0 16px 48px ${color}60`, border: `2px solid ${color}40` }} alt="Carte Red Flag" />
+                )}
+                {cardImageLoaded && (
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%)", borderRadius: 16, display: "flex", alignItems: "flex-end", justifyContent: "center", paddingBottom: 10 }}>
+                    <div style={{ background: color, borderRadius: 100, padding: "4px 14px", fontSize: 10, fontWeight: 900, color: "#fff", letterSpacing: 2, textTransform: "uppercase" }}>VOIR →</div>
+                  </div>
+                )}
+              </div>
+              <button onClick={() => setShowShareModal(true)} style={{ display: "block", width: "100%", padding: "20px 24px", background: `linear-gradient(135deg, ${color} 0%, ${color}cc 50%, #a855f7 100%)`, border: "none", borderRadius: 18, color: "#fff", fontFamily: "'Anton', sans-serif", fontSize: 22, letterSpacing: "2.5px", cursor: "pointer", boxShadow: `0 16px 48px ${color}50`, textTransform: "uppercase" }}>📲 PARTAGER MA CARTE</button>
+            </div>
 
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, background: `${color}06`, border: `1px solid ${color}20`, borderRadius: 14, padding: "14px 18px", marginTop: 14, marginBottom: 10 }}>
               <div>
@@ -330,6 +340,32 @@ export default function ResultsPage({ ssrTitle, ssrQuote, ssrArchetypeName, ssrA
       </div>
 
       <RedFlagNav />
+
+      {showShareModal && (
+        <div onClick={(e) => e.target === e.currentTarget && setShowShareModal(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.97)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", padding: "24px 24px 60px", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
+          <div style={{ width: "100%", maxWidth: 380, display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <button onClick={() => setShowShareModal(false)} style={{ alignSelf: "flex-end", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 100, padding: "8px 18px", color: "rgba(255,255,255,0.4)", fontSize: 12, fontWeight: 800, cursor: "pointer", letterSpacing: 1, marginBottom: 20, textTransform: "uppercase", fontFamily: "inherit" }}>✕ Fermer</button>
+            <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 3, color: "rgba(255,255,255,0.2)", textTransform: "uppercase", marginBottom: 14, textAlign: "center" }}>TA CARTE</div>
+            <img src={ogCardUrl} style={{ width: "min(260px, 72vw)", borderRadius: 20, marginBottom: 28, boxShadow: `0 24px 80px ${color}70`, border: `2px solid ${color}50` }} alt="Carte Red Flag" />
+            <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 10 }}>
+              <button onClick={async () => { isMobile ? await handleInstagramShare() : await handleShare(); }} style={{ width: "100%", padding: "20px", background: `linear-gradient(135deg, ${color}, #a855f7)`, border: "none", borderRadius: 16, color: "#fff", fontFamily: "'Anton', sans-serif", fontSize: 22, letterSpacing: "2px", cursor: "pointer", boxShadow: `0 12px 40px ${color}50`, textTransform: "uppercase" }}>
+                📲 {isMobile ? "PARTAGER" : "COPIER LE LIEN"}
+              </button>
+              {isMobile && (
+                <button onClick={handleShare} style={{ width: "100%", padding: "15px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 14, color: "rgba(255,255,255,0.5)", fontFamily: "inherit", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                  {copied ? "✓ COPIÉ !" : "🔗 Copier le lien"}
+                </button>
+              )}
+              <button onClick={handleSaveCard} style={{ width: "100%", padding: "14px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, color: "rgba(255,255,255,0.3)", fontFamily: "inherit", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                💾 Télécharger la carte (PNG)
+              </button>
+            </div>
+            <p style={{ fontSize: 10, color: "rgba(255,255,255,0.12)", marginTop: 24, textAlign: "center", lineHeight: 1.7 }}>
+              Enregistre l'image puis colle-la dans tes stories Instagram ou TikTok
+            </p>
+          </div>
+        </div>
+      )}
 
       <style jsx global>{`
         * { box-sizing: border-box; }
