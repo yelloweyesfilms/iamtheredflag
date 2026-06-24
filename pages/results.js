@@ -315,6 +315,14 @@ export default function ResultsPage({ ssrTitle, ssrQuote, ssrArchetypeName, ssrA
             >
               ⚔️ Défier quelqu'un — {rfPoints.toLocaleString()} RF à battre
             </button>
+            <a
+              href="https://wearthedrama.com/collections/red-flags%E2%84%A2"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ width: "100%", padding: "13px", background: `${color}06`, border: `1px solid ${color}20`, borderRadius: 14, color, fontFamily: "inherit", fontSize: 13, fontWeight: 800, textDecoration: "none", textAlign: "center", display: "block", boxSizing: "border-box" }}
+            >
+              👕 PORTER MON ARCHÉTYPE IRL →
+            </a>
           </div>
         </div>
 
