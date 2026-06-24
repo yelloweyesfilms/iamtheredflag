@@ -37,12 +37,12 @@ function getTopPct(rfPoints) {
 }
 
 function getRarity(rfPoints) {
-  if (rfPoints >= 18000) return { label: "MYTHIC",    color: "#ff6b6b", gradient: "linear-gradient(135deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff, #ff6b6b)", glow: "#ff6b6b" };
-  if (rfPoints >= 8000)  return { label: "LEGENDARY", color: "#f59e0b", gradient: "linear-gradient(135deg, #f59e0b, #fde68a, #f59e0b)", glow: "#f59e0b" };
-  if (rfPoints >= 3000)  return { label: "EPIC",      color: "#a855f7", gradient: "linear-gradient(135deg, #a855f7, #c084fc, #a855f7)", glow: "#a855f7" };
-  if (rfPoints >= 1000)  return { label: "RARE",      color: "#3b82f6", gradient: "linear-gradient(135deg, #3b82f6, #60a5fa, #3b82f6)", glow: "#3b82f6" };
-  if (rfPoints >= 300)   return { label: "UNCOMMON",  color: "#22c55e", gradient: "linear-gradient(135deg, #22c55e, #4ade80, #22c55e)", glow: "#22c55e" };
-  return                        { label: "COMMON",    color: "#94a3b8", gradient: "linear-gradient(135deg, #94a3b8, #cbd5e1, #94a3b8)", glow: "#94a3b8" };
+  if (rfPoints >= 18000) return { label: "MYTHIC",    color: "#ff6b6b" };
+  if (rfPoints >= 8000)  return { label: "LEGENDARY", color: "#f59e0b" };
+  if (rfPoints >= 3000)  return { label: "EPIC",      color: "#a855f7" };
+  if (rfPoints >= 1000)  return { label: "RARE",      color: "#3b82f6" };
+  if (rfPoints >= 300)   return { label: "UNCOMMON",  color: "#22c55e" };
+  return                        { label: "COMMON",    color: "#94a3b8" };
 }
 
 export async function getServerSideProps({ query }) {
@@ -74,7 +74,7 @@ export async function getServerSideProps({ query }) {
   };
 }
 
-const BASE = "#09090f";
+const BASE = "#06040a";
 const RED = "#E85C3A";
 
 export default function ResultsPage({ ssrTitle, ssrQuote, ssrArchetypeName, ssrArchetypeEmoji, ssrOgCardUrl }) {
@@ -89,8 +89,7 @@ export default function ResultsPage({ ssrTitle, ssrQuote, ssrArchetypeName, ssrA
   const [showShareModal, setShowShareModal] = useState(false);
   const [cardImageLoaded, setCardImageLoaded] = useState(false);
 
-  const { story: storyId, archetype: archetypeId, rf, chaos, manipulation, heartbreak, hearts, challenger_rf, challenger } = router.query;
-  const challengerScore = challenger_rf ? parseInt(challenger_rf) : null;
+  const { story: storyId, archetype: archetypeId, rf, chaos, manipulation, heartbreak, hearts } = router.query;
   const rfPoints = parseInt(rf || "0");
   const chaosScore = parseInt(chaos || "0");
   const manipScore = parseInt(manipulation || "0");
@@ -128,11 +127,11 @@ export default function ResultsPage({ ssrTitle, ssrQuote, ssrArchetypeName, ssrA
 
   const traitMax = Math.max(chaosScore, manipScore, heartScore, toxicityPct, 1);
   const traits = [
-    { label: "Manipulation", icon: "🐍", value: Math.round((manipScore  / traitMax) * 100), color: "#22c55e" },
-    { label: "Chaos",        icon: "🔥", value: Math.round((chaosScore   / traitMax) * 100), color: "#f97316" },
-    { label: "Heartbreak",   icon: "💔", value: Math.round((heartScore   / traitMax) * 100), color: "#f43f5e" },
-    { label: "Toxicité",     icon: "😈", value: toxicityPct,                                  color: RED       },
-  ].sort((a, b) => b.value - a.value);
+    { label: "Toxicité",     icon: "😈", value: toxicityPct,                                  color: RED        },
+    { label: "Chaos",        icon: "🔥", value: Math.round((chaosScore   / traitMax) * 100), color: "#f97316"  },
+    { label: "Manipulation", icon: "🐍", value: Math.round((manipScore   / traitMax) * 100), color: "#22c55e"  },
+    { label: "Cœurs brisés", icon: "💔", value: Math.round((heartScore   / traitMax) * 100), color: "#f43f5e"  },
+  ];
 
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/results?${new URLSearchParams(router.query).toString()}` : "";
   const ogCardUrl = typeof window !== "undefined"
@@ -145,7 +144,11 @@ export default function ResultsPage({ ssrTitle, ssrQuote, ssrArchetypeName, ssrA
       }).toString()
     : "";
 
-  const fade = (p, extra = {}) => ({ opacity: phase >= p ? 1 : 0, transform: phase >= p ? "translateY(0) scale(1)" : "translateY(32px) scale(0.97)", transition: "all 0.7s cubic-bezier(0.16,1,0.3,1)", ...extra });
+  const fade = (p) => ({
+    opacity: phase >= p ? 1 : 0,
+    transform: phase >= p ? "translateY(0)" : "translateY(24px)",
+    transition: "all 0.7s cubic-bezier(0.16,1,0.3,1)",
+  });
 
   async function handleShare() {
     const text = `🚩 I AM THE RED FLAG\n\n${archetype?.emoji} ${archetype?.name?.toUpperCase()}\n\n"${identityLine}"\n\n${topPct} des Red Flags · ${rfPoints.toLocaleString()} pts\n\n${shareUrl}`;
@@ -188,8 +191,6 @@ export default function ResultsPage({ ssrTitle, ssrQuote, ssrArchetypeName, ssrA
     setSubmitting(false);
   }
 
-  const archetypeWords = (archetype?.name || ssrArchetypeName || "").toUpperCase().split(" ");
-
   return (
     <>
       <Head>
@@ -211,57 +212,161 @@ export default function ResultsPage({ ssrTitle, ssrQuote, ssrArchetypeName, ssrA
         <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </Head>
 
-      <div style={{ minHeight: "100vh", background: BASE, color: "#fff", fontFamily: "'Inter', system-ui, -apple-system, sans-serif", overflowX: "hidden" }}>
-        <div style={{ ...fade(1), position: "relative", minHeight: "100svh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "60px 24px 48px", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 120% 80% at 50% 0%, ${color}22 0%, transparent 65%)`, pointerEvents: "none" }} />
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, transparent, ${color}, transparent)` }} />
-          <div style={{ position: "absolute", top: 20, left: "50%", transform: "translateX(-50%)", fontSize: 10, fontWeight: 800, letterSpacing: 3, color: "rgba(255,255,255,0.2)", textTransform: "uppercase", whiteSpace: "nowrap" }}>🚩 I AM THE RED FLAG</div>
-          <div style={{ marginBottom: 24, display: "inline-flex", alignItems: "center", gap: 6, background: `${rarity.color}15`, border: `1px solid ${rarity.color}50`, borderRadius: 100, padding: "5px 14px" }}>
-            <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2.5, color: rarity.color, textTransform: "uppercase" }}>◆ {rarity.label}</span>
+      <div style={{ minHeight: "100vh", background: BASE, color: "#fff", fontFamily: "'Inter', system-ui, sans-serif", overflowX: "hidden" }}>
+
+        {/* ── HERO ─────────────────────────────────────────────── */}
+        <div style={{ ...fade(1), position: "relative", minHeight: "100svh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "56px 24px 48px", overflow: "hidden" }}>
+          {/* glows */}
+          <div style={{ position: "absolute", top: -160, left: "50%", transform: "translateX(-50%)", width: 600, height: 600, background: `radial-gradient(circle, ${color}40 0%, ${color}15 45%, transparent 70%)`, pointerEvents: "none" }} />
+          <div style={{ position: "absolute", bottom: -120, left: "50%", transform: "translateX(-50%)", width: 500, height: 500, background: "radial-gradient(circle, rgba(168,85,247,0.18) 0%, transparent 65%)", pointerEvents: "none" }} />
+          {/* stripes */}
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 6, background: `linear-gradient(90deg, ${color}, #ff0040, ${color})` }} />
+          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 6, background: `linear-gradient(90deg, ${color}, #ff0040, ${color})` }} />
+
+          {/* header */}
+          <div style={{ position: "absolute", top: 18, left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 7, whiteSpace: "nowrap" }}>
+            <span style={{ fontSize: 13 }}>🚩</span>
+            <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 3, color: "rgba(255,255,255,0.25)", textTransform: "uppercase" }}>I AM THE RED FLAG</span>
           </div>
-          <div style={{ fontSize: 56, marginBottom: 16, filter: `drop-shadow(0 0 32px ${color}80)`, lineHeight: 1 }}>{archetype?.emoji || "🚩"}</div>
-          <div style={{ textAlign: "center", marginBottom: 28 }}>
-            {archetypeWords.map((word, i) => (
-              <div key={i} style={{ fontFamily: "'Anton', sans-serif", fontSize: "clamp(52px, 17vw, 80px)", letterSpacing: "1px", lineHeight: 0.92, color: "#fff", textTransform: "uppercase", textShadow: `0 0 80px ${color}60`, display: "block" }}>{word}</div>
+
+          {/* rarity badge */}
+          <div style={{ marginBottom: 20, display: "inline-flex", alignItems: "center", gap: 6, background: `${rarity.color}18`, border: `1px solid ${rarity.color}50`, borderRadius: 100, padding: "5px 16px" }}>
+            <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 3, color: rarity.color, textTransform: "uppercase" }}>◆ {rarity.label}</span>
+          </div>
+
+          {/* emoji */}
+          <div style={{ fontSize: 72, marginBottom: 12, filter: `drop-shadow(0 0 40px ${color}90)`, lineHeight: 1 }}>{archetype?.emoji || "🚩"}</div>
+
+          {/* TU ES label */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, width: "100%", maxWidth: 340 }}>
+            <div style={{ height: 1, flex: 1, background: `linear-gradient(90deg, transparent, ${color}50)` }} />
+            <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 5, color: "rgba(255,255,255,0.25)", textTransform: "uppercase" }}>TU ES</span>
+            <div style={{ height: 1, flex: 1, background: `linear-gradient(90deg, ${color}50, transparent)` }} />
+          </div>
+
+          {/* archetype name */}
+          <div style={{ textAlign: "center", marginBottom: 20 }}>
+            {(archetype?.name || ssrArchetypeName || "").toUpperCase().split(" ").map((word, i) => (
+              <div key={i} style={{ fontFamily: "'Anton', sans-serif", fontSize: "clamp(54px, 18vw, 86px)", letterSpacing: "1px", lineHeight: 0.9, color: "#fff", textShadow: `0 0 60px ${color}70, 0 0 120px ${color}30`, display: "block" }}>{word}</div>
             ))}
           </div>
-          <div style={{ textAlign: "center", fontSize: "clamp(15px, 4.2vw, 19px)", fontStyle: "italic", fontWeight: 400, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, maxWidth: 320, marginBottom: 32 }}>"{identityLine}"</div>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 7, background: `${color}20`, border: `1px solid ${color}45`, borderRadius: 100, padding: "7px 18px" }}>
-            <span style={{ fontSize: 12 }}>🏆</span>
-            <span style={{ fontFamily: "'Anton', sans-serif", fontSize: 14, letterSpacing: "2px", color, textTransform: "uppercase" }}>{topPct.toUpperCase()} DES RED FLAGS</span>
+
+          {/* quote */}
+          <div style={{ textAlign: "center", fontSize: "clamp(14px, 4vw, 18px)", fontStyle: "italic", color: "rgba(255,255,255,0.55)", lineHeight: 1.5, maxWidth: 300, marginBottom: 28 }}>
+            "{identityLine}"
           </div>
-          <div style={{ position: "absolute", bottom: 20, left: "50%", transform: "translateX(-50%)", fontSize: 11, color: "rgba(255,255,255,0.15)", letterSpacing: 2, textTransform: "uppercase", animation: "bounce 2s ease infinite" }}>↓</div>
+
+          {/* RF pts + top% */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, background: `${color}18`, border: `1px solid ${color}45`, borderRadius: 100, padding: "7px 16px" }}>
+              <span style={{ fontFamily: "'Anton', sans-serif", fontSize: 15, letterSpacing: "2px", color, textTransform: "uppercase" }}>🚩 {rfPoints.toLocaleString()} RF</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 100, padding: "7px 16px" }}>
+              <span style={{ fontSize: 11 }}>👑</span>
+              <span style={{ fontFamily: "'Anton', sans-serif", fontSize: 13, letterSpacing: "2px", color: "rgba(255,255,255,0.5)", textTransform: "uppercase" }}>{topPct.toUpperCase()}</span>
+            </div>
+          </div>
+
+          <div style={{ position: "absolute", bottom: 18, left: "50%", transform: "translateX(-50%)", fontSize: 12, color: "rgba(255,255,255,0.15)", animation: "bounce 2s ease infinite" }}>↓</div>
         </div>
 
-        <div style={{ maxWidth: 440, margin: "0 auto", padding: "0 18px 100px" }}>
-          <div style={{ ...fade(2), marginTop: 40, textAlign: "center" }}>
-            <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 3, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", marginBottom: 10 }}>🏆 TITLE UNLOCKED</div>
-            <div style={{ fontFamily: "'Bebas Neue', 'Anton', sans-serif", fontSize: "clamp(34px, 10vw, 48px)", letterSpacing: "3px", color: "#fff", lineHeight: 1, marginBottom: 6 }}>{title}</div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.25)", letterSpacing: 1 }}>{rfPoints.toLocaleString()} RF POINTS · {story?.emoji} {story?.title}</div>
-          </div>
+        {/* ── CARTE + PARTAGE ──────────────────────────────────── */}
+        <div style={{ ...fade(2), padding: "48px 24px 0", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 4, color: "rgba(255,255,255,0.2)", textTransform: "uppercase", marginBottom: 20, textAlign: "center" }}>TA CARTE</div>
 
-          <div style={{ ...fade(3), marginTop: 36 }}>
-            <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 3, color: "rgba(255,255,255,0.2)", textTransform: "uppercase", marginBottom: 14, textAlign: "center" }}>POWER TRAITS</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {traits.map((t, i) => (
-                <div key={t.label} style={{ display: "flex", alignItems: "center", gap: 14, background: i === 0 ? `${t.color}10` : "rgba(255,255,255,0.025)", border: `1px solid ${i === 0 ? t.color + "35" : "rgba(255,255,255,0.06)"}`, borderRadius: 14, padding: "14px 18px", position: "relative", overflow: "hidden" }}>
-                  {i === 0 && <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: t.color }} />}
-                  <div style={{ fontSize: i === 0 ? 28 : 22, lineHeight: 1, flexShrink: 0 }}>{t.icon}</div>
-                  <div style={{ flex: 1, fontFamily: "'Anton', sans-serif", fontSize: i === 0 ? 16 : 13, letterSpacing: "1px", color: i === 0 ? "#fff" : "rgba(255,255,255,0.5)", textTransform: "uppercase" }}>{t.label}</div>
-                  <div style={{ fontFamily: "'Anton', sans-serif", fontSize: i === 0 ? 32 : 22, color: i === 0 ? t.color : "rgba(255,255,255,0.35)", lineHeight: 1 }}>{t.value}%</div>
-                </div>
-              ))}
-            </div>
-            {heartsBroken > 0 && (
-              <div style={{ marginTop: 8, display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(244,63,94,0.05)", border: "1px solid rgba(244,63,94,0.15)", borderRadius: 14, padding: "10px 18px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}><span style={{ fontSize: 18 }}>💔</span><span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: 1 }}>Cœurs brisés</span></div>
-                <div style={{ fontFamily: "'Anton', sans-serif", fontSize: 22, color: "#f43f5e", lineHeight: 1 }}>{"💔".repeat(Math.min(heartsBroken, 5))}</div>
+          {/* card preview */}
+          <div onClick={() => ogCardUrl && setShowShareModal(true)} style={{ cursor: "pointer", position: "relative", marginBottom: 24, display: "inline-block" }}>
+            {!cardImageLoaded && ogCardUrl && (
+              <div style={{ width: "min(240px, 68vw)", aspectRatio: "9/16", background: `${color}08`, borderRadius: 20, border: `2px dashed ${color}30`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ fontSize: 40, opacity: 0.3 }}>🚩</span>
+              </div>
+            )}
+            {ogCardUrl && (
+              <img
+                src={ogCardUrl}
+                onLoad={() => setCardImageLoaded(true)}
+                style={{ width: "min(240px, 68vw)", borderRadius: 20, display: cardImageLoaded ? "block" : "none", boxShadow: `0 24px 80px ${color}60, 0 0 0 2px ${color}50` }}
+                alt="Carte Red Flag"
+              />
+            )}
+            {cardImageLoaded && (
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 40%)", borderRadius: 20, display: "flex", alignItems: "flex-end", justifyContent: "center", paddingBottom: 14 }}>
+                <div style={{ background: color, borderRadius: 100, padding: "5px 16px", fontSize: 11, fontWeight: 900, color: "#fff", letterSpacing: 2, textTransform: "uppercase" }}>AGRANDIR →</div>
               </div>
             )}
           </div>
 
+          {/* share button */}
+          <div style={{ width: "100%", maxWidth: 400, display: "flex", flexDirection: "column", gap: 10 }}>
+            <button
+              onClick={() => setShowShareModal(true)}
+              style={{ width: "100%", padding: "22px 24px", background: `linear-gradient(135deg, ${color} 0%, #c0392b 50%, #a855f7 100%)`, border: "none", borderRadius: 18, color: "#fff", fontFamily: "'Anton', sans-serif", fontSize: 24, letterSpacing: "2px", cursor: "pointer", boxShadow: `0 16px 60px ${color}50`, textTransform: "uppercase" }}
+            >
+              📲 PARTAGER MA CARTE
+            </button>
+            <button
+              onClick={() => {
+                const challengeUrl = `${shareUrl}&challenger_rf=${rfPoints}&challenger=${encodeURIComponent(archetype?.name || "Red Flag")}`;
+                const text = `⚔️ Je te défie sur I AM THE RED FLAG !\n\n${archetype?.emoji || "🚩"} ${archetype?.name?.toUpperCase()} — ${rfPoints.toLocaleString()} RF à battre\n\n`;
+                if (navigator.share) { navigator.share({ title: "⚔️ Red Flag Versus", text, url: challengeUrl }).catch(() => {}); }
+                else { navigator.clipboard.writeText(text + challengeUrl); setCopied(true); setTimeout(() => setCopied(false), 2000); }
+              }}
+              style={{ width: "100%", padding: "14px", background: "rgba(255,255,255,0.04)", border: `1px solid ${color}30`, borderRadius: 14, color: "rgba(255,255,255,0.5)", fontFamily: "inherit", fontSize: 14, fontWeight: 800, cursor: "pointer", letterSpacing: 0.5 }}
+            >
+              ⚔️ Défier quelqu'un — {rfPoints.toLocaleString()} RF à battre
+            </button>
+          </div>
+        </div>
+
+        {/* ── STATS ────────────────────────────────────────────── */}
+        <div style={{ ...fade(3), maxWidth: 440, margin: "0 auto", padding: "48px 24px 0" }}>
+          <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 4, color: "rgba(255,255,255,0.2)", textTransform: "uppercase", marginBottom: 16, textAlign: "center" }}>POWER STATS</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {traits.map((t) => (
+              <div key={t.label} style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <span style={{ fontSize: 22, width: 30, flexShrink: 0 }}>{t.icon}</span>
+                <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: 2, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", width: 110, flexShrink: 0 }}>{t.label}</span>
+                <div style={{ flex: 1, height: 10, background: "rgba(255,255,255,0.06)", borderRadius: 5, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${t.value}%`, background: `linear-gradient(90deg, ${t.color}cc, ${t.color})`, borderRadius: 5, boxShadow: `0 0 12px ${t.color}80` }} />
+                </div>
+                <span style={{ fontSize: 22, fontWeight: 900, color: t.color, width: 56, textAlign: "right", fontFamily: "'Anton', sans-serif", letterSpacing: "1px" }}>{t.value}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── TITRE + HOF ───────────────────────────────────────── */}
+        <div style={{ ...fade(3), maxWidth: 440, margin: "0 auto", padding: "32px 24px 0" }}>
+          <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 18, padding: "20px 24px", marginBottom: 12 }}>
+            <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 3, color: "rgba(255,255,255,0.2)", textTransform: "uppercase", marginBottom: 6 }}>🏆 TITRE OBTENU</div>
+            <div style={{ fontFamily: "'Bebas Neue', 'Anton', sans-serif", fontSize: "clamp(30px, 9vw, 42px)", letterSpacing: "2px", color: "#fff", lineHeight: 1 }}>{title}</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", marginTop: 4, letterSpacing: 1 }}>{story?.emoji} {story?.title}</div>
+          </div>
+
+          {/* Hall of Fame */}
+          <div style={{ background: `${RED}05`, border: `1px solid ${RED}18`, borderRadius: 18, padding: "20px 24px", marginBottom: 12 }}>
+            {submitted ? (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div>
+                  <div style={{ fontFamily: "'Anton', sans-serif", fontSize: 17, color: "#fff", letterSpacing: "1px" }}>🏆 DANS LE HALL OF FAME</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 3 }}>{rfPoints.toLocaleString()} RF enregistrés</div>
+                </div>
+                <a href="/hall-of-fame" style={{ fontSize: 11, fontWeight: 800, color: RED, textDecoration: "none", background: `${RED}12`, border: `1px solid ${RED}28`, borderRadius: 8, padding: "7px 12px", whiteSpace: "nowrap" }}>VOIR →</a>
+              </div>
+            ) : (
+              <>
+                <div style={{ fontFamily: "'Anton', sans-serif", fontSize: 15, letterSpacing: "1px", color: "#fff", marginBottom: 12 }}>🏆 HALL OF FAME</div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input type="text" value={pseudo} onChange={(e) => setPseudo(e.target.value.slice(0, 20))} placeholder="Ton pseudo..." maxLength={20} style={{ flex: 1, padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 10, color: "#fff", fontSize: 14, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
+                  <button onClick={handleHofSubmit} disabled={submitting} style={{ flexShrink: 0, padding: "11px 20px", background: submitting ? "rgba(232,92,58,0.3)" : `linear-gradient(135deg, ${RED}, #c0392b)`, border: "none", borderRadius: 10, color: "#fff", fontFamily: "'Anton', sans-serif", fontSize: 15, letterSpacing: "1px", cursor: submitting ? "default" : "pointer" }}>{submitting ? "..." : "GO"}</button>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* badges */}
           {newBadges.length > 0 && (
-            <div style={{ ...fade(3), marginTop: 20, background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.18)", borderRadius: 18, padding: "18px" }}>
+            <div style={{ background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.18)", borderRadius: 18, padding: "18px 24px", marginBottom: 12 }}>
               <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 3, color: "#f59e0b", textTransform: "uppercase", marginBottom: 12 }}>🏅 BADGES DÉBLOQUÉS</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 {newBadges.map((badge) => (
@@ -273,90 +378,57 @@ export default function ResultsPage({ ssrTitle, ssrQuote, ssrArchetypeName, ssrA
               </div>
             </div>
           )}
+        </div>
 
-          <div style={{ ...fade(4), marginTop: 36 }}>
-            <div style={{ textAlign: "center", marginBottom: 24 }}>
-              <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 3, color: "rgba(255,255,255,0.2)", textTransform: "uppercase", marginBottom: 14 }}>TA CARTE DE COMBAT</div>
-              <div onClick={() => ogCardUrl && setShowShareModal(true)} style={{ cursor: "pointer", display: "inline-block", position: "relative", marginBottom: 18 }}>
-                {!cardImageLoaded && ogCardUrl && (
-                  <div style={{ width: 160, height: 284, background: `${color}08`, borderRadius: 16, border: `1px dashed ${color}30`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <div style={{ fontSize: 32, opacity: 0.4 }}>🚩</div>
-                  </div>
-                )}
-                {ogCardUrl && (
-                  <img src={ogCardUrl} onLoad={() => setCardImageLoaded(true)} style={{ width: 160, borderRadius: 16, display: cardImageLoaded ? "block" : "none", boxShadow: `0 16px 48px ${color}60`, border: `2px solid ${color}40` }} alt="Carte Red Flag" />
-                )}
-                {cardImageLoaded && (
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%)", borderRadius: 16, display: "flex", alignItems: "flex-end", justifyContent: "center", paddingBottom: 10 }}>
-                    <div style={{ background: color, borderRadius: 100, padding: "4px 14px", fontSize: 10, fontWeight: 900, color: "#fff", letterSpacing: 2, textTransform: "uppercase" }}>VOIR →</div>
-                  </div>
-                )}
-              </div>
-              <button onClick={() => setShowShareModal(true)} style={{ display: "block", width: "100%", padding: "20px 24px", background: `linear-gradient(135deg, ${color} 0%, ${color}cc 50%, #a855f7 100%)`, border: "none", borderRadius: 18, color: "#fff", fontFamily: "'Anton', sans-serif", fontSize: 22, letterSpacing: "2.5px", cursor: "pointer", boxShadow: `0 16px 48px ${color}50`, textTransform: "uppercase" }}>📲 PARTAGER MA CARTE</button>
-            </div>
-
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, background: `${color}06`, border: `1px solid ${color}20`, borderRadius: 14, padding: "14px 18px", marginTop: 14, marginBottom: 10 }}>
-              <div>
-                <div style={{ fontFamily: "'Anton', sans-serif", fontSize: 16, letterSpacing: "1px", color: "#fff", lineHeight: 1 }}>⚔️ VERSUS</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 3 }}><span style={{ color }}>{rfPoints.toLocaleString()} RF</span> à battre</div>
-              </div>
-              <button onClick={() => {
-                const challengeUrl = `${shareUrl}&challenger_rf=${rfPoints}&challenger=${encodeURIComponent(archetype?.name || "Red Flag")}`;
-                const text = `⚔️ Je te défie sur I AM THE RED FLAG !\n\n${archetype?.emoji || "🚩"} ${archetype?.name?.toUpperCase()} — ${rfPoints.toLocaleString()} RF à battre\n\n`;
-                if (navigator.share) { navigator.share({ title: "⚔️ Red Flag Versus", text, url: challengeUrl }).catch(() => {}); }
-                else { navigator.clipboard.writeText(text + challengeUrl); setCopied(true); setTimeout(() => setCopied(false), 2000); }
-              }} style={{ flexShrink: 0, padding: "10px 18px", background: `linear-gradient(135deg, ${color}, ${color}cc)`, border: "none", borderRadius: 10, color: "#fff", fontFamily: "'Anton', sans-serif", fontSize: 13, letterSpacing: "1px", cursor: "pointer" }}>ENVOYER →</button>
-            </div>
-
-            <div style={{ background: "rgba(232,92,58,0.04)", border: "1px solid rgba(232,92,58,0.15)", borderRadius: 14, padding: "14px 18px", marginBottom: 10 }}>
-              {submitted ? (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div><div style={{ fontFamily: "'Anton', sans-serif", fontSize: 16, color: "#fff", letterSpacing: "1px" }}>🏆 DANS LE HALL OF FAME</div><div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 3 }}>{rfPoints.toLocaleString()} RF enregistrés</div></div>
-                  <a href="/hall-of-fame" style={{ fontSize: 11, fontWeight: 800, color: RED, textDecoration: "none", background: `${RED}12`, border: `1px solid ${RED}28`, borderRadius: 8, padding: "7px 12px", whiteSpace: "nowrap" }}>VOIR →</a>
-                </div>
-              ) : (
-                <>
-                  <div style={{ fontFamily: "'Anton', sans-serif", fontSize: 15, letterSpacing: "1px", color: "#fff", marginBottom: 10 }}>🏆 HALL OF FAME</div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <input type="text" value={pseudo} onChange={(e) => setPseudo(e.target.value.slice(0, 20))} placeholder="Ton pseudo..." maxLength={20} style={{ flex: 1, padding: "10px 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 10, color: "#fff", fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
-                    <button onClick={handleHofSubmit} disabled={submitting} style={{ flexShrink: 0, padding: "10px 18px", background: submitting ? "rgba(232,92,58,0.3)" : `linear-gradient(135deg, ${RED}, #c0392b)`, border: "none", borderRadius: 10, color: "#fff", fontFamily: "'Anton', sans-serif", fontSize: 14, letterSpacing: "1px", cursor: submitting ? "default" : "pointer" }}>{submitting ? "..." : "GO"}</button>
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 28 }}>
-              <a href="/confessions" style={{ padding: "12px 6px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, color: "rgba(255,255,255,0.45)", fontSize: 11, fontWeight: 700, textDecoration: "none", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}><span style={{ fontSize: 18 }}>😈</span><span>Confesser</span></a>
-              <a href={`/play?story=${storyId}&archetype=${archetypeId}`} style={{ padding: "12px 6px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, color: "rgba(255,255,255,0.45)", fontSize: 11, fontWeight: 700, textDecoration: "none", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}><span style={{ fontSize: 18 }}>🔄</span><span>Rejouer</span></a>
-              <a href="/" style={{ padding: "12px 6px", background: `${color}10`, border: `1px solid ${color}28`, borderRadius: 12, color, fontSize: 11, fontWeight: 800, textDecoration: "none", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}><span style={{ fontSize: 18 }}>🚩</span><span>Autre drama</span></a>
-            </div>
-
-            <p style={{ textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.1)", lineHeight: 1.8 }}>
-              I AM THE RED FLAG — Simulation dramatique fictive et satirique.<br />
-              <a href="https://verticalclap.com" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(232,92,58,0.22)", textDecoration: "none", fontWeight: 700 }}>Powered by Vertical Clap</a>
-            </p>
+        {/* ── NAV LINKS ─────────────────────────────────────────── */}
+        <div style={{ ...fade(4), maxWidth: 440, margin: "0 auto", padding: "24px 24px 100px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 28 }}>
+            <a href="/confessions" style={{ padding: "14px 6px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, color: "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 700, textDecoration: "none", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}><span style={{ fontSize: 20 }}>😈</span><span>Confesser</span></a>
+            <a href={`/play?story=${storyId}&archetype=${archetypeId}`} style={{ padding: "14px 6px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, color: "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 700, textDecoration: "none", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}><span style={{ fontSize: 20 }}>🔄</span><span>Rejouer</span></a>
+            <a href="/" style={{ padding: "14px 6px", background: `${color}12`, border: `1px solid ${color}30`, borderRadius: 14, color, fontSize: 11, fontWeight: 800, textDecoration: "none", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}><span style={{ fontSize: 20 }}>🚩</span><span>Autre drama</span></a>
           </div>
+          <p style={{ textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.1)", lineHeight: 1.8 }}>
+            I AM THE RED FLAG — Simulation dramatique fictive et satirique.<br />
+            <a href="https://verticalclap.com" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(232,92,58,0.22)", textDecoration: "none", fontWeight: 700 }}>Powered by Vertical Clap</a>
+          </p>
         </div>
       </div>
 
       <RedFlagNav />
 
+      {/* ── SHARE MODAL ───────────────────────────────────────── */}
       {showShareModal && (
-        <div onClick={(e) => e.target === e.currentTarget && setShowShareModal(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.97)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", padding: "24px 24px 60px", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
+        <div
+          onClick={(e) => e.target === e.currentTarget && setShowShareModal(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.97)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", padding: "24px 24px 60px", overflowY: "auto", WebkitOverflowScrolling: "touch" }}
+        >
           <div style={{ width: "100%", maxWidth: 380, display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <button onClick={() => setShowShareModal(false)} style={{ alignSelf: "flex-end", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 100, padding: "8px 18px", color: "rgba(255,255,255,0.4)", fontSize: 12, fontWeight: 800, cursor: "pointer", letterSpacing: 1, marginBottom: 20, textTransform: "uppercase", fontFamily: "inherit" }}>✕ Fermer</button>
-            <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 3, color: "rgba(255,255,255,0.2)", textTransform: "uppercase", marginBottom: 14, textAlign: "center" }}>TA CARTE</div>
-            <img src={ogCardUrl} style={{ width: "min(260px, 72vw)", borderRadius: 20, marginBottom: 28, boxShadow: `0 24px 80px ${color}70`, border: `2px solid ${color}50` }} alt="Carte Red Flag" />
+            <button
+              onClick={() => setShowShareModal(false)}
+              style={{ alignSelf: "flex-end", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 100, padding: "8px 18px", color: "rgba(255,255,255,0.4)", fontSize: 12, fontWeight: 800, cursor: "pointer", letterSpacing: 1, marginBottom: 20, textTransform: "uppercase", fontFamily: "inherit" }}
+            >✕ Fermer</button>
+
+            <img src={ogCardUrl} style={{ width: "min(280px, 76vw)", borderRadius: 20, marginBottom: 28, boxShadow: `0 24px 80px ${color}70, 0 0 0 2px ${color}50` }} alt="Carte Red Flag" />
+
             <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 10 }}>
-              <button onClick={async () => { isMobile ? await handleInstagramShare() : await handleShare(); }} style={{ width: "100%", padding: "20px", background: `linear-gradient(135deg, ${color}, #a855f7)`, border: "none", borderRadius: 16, color: "#fff", fontFamily: "'Anton', sans-serif", fontSize: 22, letterSpacing: "2px", cursor: "pointer", boxShadow: `0 12px 40px ${color}50`, textTransform: "uppercase" }}>
+              <button
+                onClick={async () => { isMobile ? await handleInstagramShare() : await handleShare(); }}
+                style={{ width: "100%", padding: "22px", background: `linear-gradient(135deg, ${color}, #a855f7)`, border: "none", borderRadius: 16, color: "#fff", fontFamily: "'Anton', sans-serif", fontSize: 24, letterSpacing: "2px", cursor: "pointer", boxShadow: `0 12px 40px ${color}50`, textTransform: "uppercase" }}
+              >
                 📲 {isMobile ? "PARTAGER" : "COPIER LE LIEN"}
               </button>
               {isMobile && (
-                <button onClick={handleShare} style={{ width: "100%", padding: "15px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 14, color: "rgba(255,255,255,0.5)", fontFamily: "inherit", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                <button
+                  onClick={handleShare}
+                  style={{ width: "100%", padding: "15px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 14, color: "rgba(255,255,255,0.5)", fontFamily: "inherit", fontSize: 14, fontWeight: 700, cursor: "pointer" }}
+                >
                   {copied ? "✓ COPIÉ !" : "🔗 Copier le lien"}
                 </button>
               )}
-              <button onClick={handleSaveCard} style={{ width: "100%", padding: "14px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, color: "rgba(255,255,255,0.3)", fontFamily: "inherit", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+              <button
+                onClick={handleSaveCard}
+                style={{ width: "100%", padding: "14px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, color: "rgba(255,255,255,0.3)", fontFamily: "inherit", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+              >
                 💾 Télécharger la carte (PNG)
               </button>
             </div>
